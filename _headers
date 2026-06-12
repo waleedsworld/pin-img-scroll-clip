@@ -1,0 +1,20 @@
+# Cache policy for static hosts that honour a _headers file
+# (Cloudflare Pages, Netlify). Fingerprint-free assets get a long,
+# immutable cache; HTML stays fresh so content updates ship instantly.
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/vendor/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/docs/media/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+  X-Content-Type-Options: nosniff
+
+/
+  Cache-Control: public, max-age=0, must-revalidate
+  X-Content-Type-Options: nosniff
