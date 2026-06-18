@@ -6,6 +6,12 @@ Think of it as a flip-book you steer with your scrollbar. Scroll down and each f
 
 ![The hero panel: bold "Scroll to Reveal" headline over a soft grey band](docs/media/hero.png)
 
+<p align="center">
+  <img src="assets/scroll-reveal-demo.gif" alt="Animated demo: the pinned artwork clipping open frame by frame while the copy scrolls past and the stage tints from pink to periwinkle to peach to coral" width="720" />
+  <br />
+  <em>The effect in motion — captured straight from the running page.</em>
+</p>
+
 ---
 
 ## ✨ What makes it tick
