@@ -277,6 +277,132 @@
 				}
 			}
 
+			/* --- scroll-progress bar --- */
+			/* A slim bar pinned to the top of the viewport that fills as you
+			   scroll through the pinned gallery. It shares the gallery's scroll
+			   range, so it tracks the reveal exactly. Hidden until JS wires it
+			   up, so the no-JS / reduced-motion paths never show a dead bar. */
+			.scroll-progress {
+				position: fixed;
+				top: 0;
+				left: 0;
+				right: 0;
+				height: 3px;
+				background: rgba(27, 27, 34, 0.08);
+				z-index: 50;
+				opacity: 0;
+				pointer-events: none;
+				transition: opacity 0.4s ease;
+			}
+
+			.scroll-progress > span {
+				display: block;
+				height: 100%;
+				width: 100%;
+				transform: scaleX(0);
+				transform-origin: left center;
+				background: linear-gradient(
+					90deg,
+					var(--col1),
+					var(--col2),
+					var(--col3),
+					var(--col4)
+				);
+				will-change: transform;
+			}
+
+			/* --- frame navigator --- */
+			/* A vertical strip of dots down the right edge. The dot for the
+			   frame currently on deck lights up, and clicking any dot scrolls
+			   straight to the point where that frame finishes revealing. */
+			.frame-nav {
+				position: fixed;
+				right: clamp(0.9rem, 2vw, 1.6rem);
+				top: 50%;
+				transform: translateY(-50%);
+				display: flex;
+				flex-direction: column;
+				gap: 0.85rem;
+				z-index: 50;
+				opacity: 0;
+				pointer-events: none;
+				transition: opacity 0.4s ease;
+			}
+
+			/* JS flips this on once the scroll-linked animation is live. */
+			.nav-ready .scroll-progress,
+			.nav-ready .frame-nav {
+				opacity: 1;
+			}
+
+			.nav-ready .frame-nav {
+				pointer-events: auto;
+			}
+
+			.frame-nav button {
+				position: relative;
+				width: 12px;
+				height: 12px;
+				padding: 0;
+				border: 2px solid var(--muted);
+				border-radius: 50%;
+				background: transparent;
+				cursor: pointer;
+				transition: transform 0.25s ease, background-color 0.25s ease,
+					border-color 0.25s ease;
+			}
+
+			.frame-nav button:hover {
+				transform: scale(1.25);
+			}
+
+			.frame-nav button.is-active {
+				background: var(--ink);
+				border-color: var(--ink);
+				transform: scale(1.25);
+			}
+
+			.frame-nav button:focus-visible {
+				outline: 2px solid var(--ink);
+				outline-offset: 3px;
+			}
+
+			/* Label flag that slides out on hover, focus, or when active. */
+			.frame-nav button::after {
+				content: attr(data-label);
+				position: absolute;
+				right: 22px;
+				top: 50%;
+				transform: translateY(-50%);
+				white-space: nowrap;
+				font-family: 'Quicksand', sans-serif;
+				font-size: 0.72rem;
+				font-weight: 600;
+				letter-spacing: 0.04em;
+				color: var(--ink);
+				background: var(--paper);
+				padding: 0.2rem 0.5rem;
+				border-radius: 6px;
+				box-shadow: 0 6px 18px -8px rgba(30, 20, 40, 0.5);
+				opacity: 0;
+				pointer-events: none;
+				transition: opacity 0.2s ease;
+			}
+
+			.frame-nav button:hover::after,
+			.frame-nav button:focus-visible::after,
+			.frame-nav button.is-active::after {
+				opacity: 1;
+			}
+
+			/* On narrow screens the pinned image moves to the bottom, so the
+			   side navigator would only get in the way — retire it there. */
+			@media all and (max-width: 720px) {
+				.frame-nav {
+					display: none;
+				}
+			}
+
 			.visually-hidden {
 				position: absolute;
 				width: 1px;
@@ -379,6 +505,17 @@
 			</p>
 		</footer>
 
+		<!-- Scroll-progress bar + frame navigator. Both stay invisible and
+		     inert until the scroll animation initialises (see .nav-ready). -->
+		<div class="scroll-progress" aria-hidden="true"><span></span></div>
+
+		<nav class="frame-nav" aria-label="Jump to frame">
+			<button type="button" data-label="01 · The pin" aria-label="Go to frame 1, The pin"></button>
+			<button type="button" data-label="02 · The clip" aria-label="Go to frame 2, The clip"></button>
+			<button type="button" data-label="03 · The scrub" aria-label="Go to frame 3, The scrub"></button>
+			<button type="button" data-label="04 · The palette" aria-label="Go to frame 4, The palette"></button>
+		</nav>
+
 		<script src="vendor/gsap.min.js"></script>
 		<script src="vendor/ScrollTrigger.min.js"></script>
 		<script>
@@ -433,6 +570,57 @@
 					animation: reveal,
 					scrub: 1.2,
 				});
+
+				// --- Feature: scroll-progress bar + frame navigator ---
+				// One tracker ScrollTrigger, sharing the gallery's scroll
+				// range, drives both the top progress bar and the dot strip.
+				// Because it uses the same start/end as the pin above, the UI
+				// can never drift out of sync with the reveal.
+				const progressFill = document.querySelector(
+					'.scroll-progress > span'
+				);
+				const dots = Array.from(
+					document.querySelectorAll('.frame-nav button')
+				);
+				const lastDot = dots.length - 1;
+
+				const navTrigger = ScrollTrigger.create({
+					trigger: '.gallery',
+					start: 'top top',
+					end: 'bottom bottom',
+					onUpdate: (self) => {
+						const p = self.progress;
+						if (progressFill) {
+							progressFill.style.transform = `scaleX(${p})`;
+						}
+						// Highlight whichever frame is closest to fully revealed.
+						const active = Math.min(
+							lastDot,
+							Math.max(0, Math.round(p * lastDot))
+						);
+						dots.forEach((dot, i) => {
+							const on = i === active;
+							dot.classList.toggle('is-active', on);
+							dot.setAttribute('aria-current', on ? 'true' : 'false');
+						});
+					},
+				});
+
+				// Clicking a dot glides to the scroll position where that frame
+				// finishes wiping in. Frame N maps to fraction N / (count - 1),
+				// mirroring the staggered reveal timeline.
+				dots.forEach((dot, i) => {
+					dot.addEventListener('click', () => {
+						const frac = lastDot > 0 ? i / lastDot : 0;
+						const target =
+							navTrigger.start +
+							frac * (navTrigger.end - navTrigger.start);
+						window.scrollTo({ top: target, behavior: 'smooth' });
+					});
+				});
+
+				// Reveal the (until-now hidden) progress bar and navigator.
+				document.body.classList.add('nav-ready');
 
 				// Tint the stage toward each frame's colour as it scrolls in.
 				const tints = [
