@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://waleedsworld.github.io/pin-img-scroll-clip/sitemap.xml
