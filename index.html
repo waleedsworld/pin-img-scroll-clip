@@ -604,6 +604,7 @@
 			})();
 		</script>
 
+		<script src="assets/ab-testing.js"></script>
 		<script src="vendor/gsap.min.js"></script>
 		<script src="vendor/ScrollTrigger.min.js"></script>
 		<script>
@@ -611,6 +612,40 @@
 				const prefersReduced = window.matchMedia(
 					'(prefers-reduced-motion: reduce)'
 				).matches;
+
+				// --- A/B: how tightly the reveal tracks the scrollbar ---------
+				// "control" keeps the original lazy catch-up; "snappy" tightens
+				// the scrub so frames follow the cursor more immediately. The
+				// visitor is bucketed once and stays put across reloads.
+				let scrubValue = 1.2;
+				if (window.AB) {
+					const variant = window.AB.define('scroll_scrub_feel', [
+						{ id: 'control', weight: 1 },
+						{ id: 'snappy', weight: 1 },
+					]);
+					if (variant === 'snappy') scrubValue = 0.6;
+
+					// Fire a conversion-style event when the visitor reaches the
+					// end of the story, so exposure can be tied to completion.
+					const outro = document.querySelector('footer.band');
+					if (outro && 'IntersectionObserver' in window) {
+						const io = new IntersectionObserver(
+							(entries) => {
+								entries.forEach((entry) => {
+									if (entry.isIntersecting) {
+										window.AB.track('scroll_complete', {
+											experiment: 'scroll_scrub_feel',
+											variant,
+										});
+										io.disconnect();
+									}
+								});
+							},
+							{ threshold: 0.4 }
+						);
+						io.observe(outro);
+					}
+				}
 
 				if (!window.gsap || !window.ScrollTrigger) {
 					// Graceful fallback: reveal every frame if the library fails to load.
@@ -656,7 +691,7 @@
 					end: 'bottom bottom',
 					pin: '.right',
 					animation: reveal,
-					scrub: 1.2,
+					scrub: scrubValue,
 				});
 
 				// --- Feature: scroll-progress bar + frame navigator ---
