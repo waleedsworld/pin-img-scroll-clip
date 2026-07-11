@@ -2,9 +2,37 @@
 
 > One image, pinned dead-centre, **clipping itself open frame by frame** as the page scrolls past. No build step, no framework, no fuss — just honest HTML, a sprinkle of CSS, and [GSAP ScrollTrigger](https://gsap.com/docs/v3/Plugins/ScrollTrigger/) doing the heavy lifting.
 
+<p align="center">
+  <img src="https://img.shields.io/badge/build-none%20required-2ea44f?style=flat-square" alt="No build step" />
+  <img src="https://img.shields.io/badge/GSAP-3.12.2-88CE02?style=flat-square&logo=greensock&logoColor=white" alt="GSAP 3.12.2" />
+  <img src="https://img.shields.io/badge/JavaScript-vanilla-f7df1e?style=flat-square&logo=javascript&logoColor=black" alt="Vanilla JS" />
+  <img src="https://img.shields.io/badge/dependencies-0-blue?style=flat-square" alt="Zero runtime dependencies" />
+  <img src="https://img.shields.io/badge/a11y-reduced--motion%20aware-6f42c1?style=flat-square" alt="Respects prefers-reduced-motion" />
+  <img src="https://img.shields.io/badge/license-MIT-informational?style=flat-square" alt="MIT License" />
+</p>
+
 Think of it as a flip-book you steer with your scrollbar. Scroll down and each frame wipes into view; scroll back up and it seals shut again. The whole stage even changes colour to match whichever frame is on deck. It's the kind of scrollytelling flourish you've seen on fancy agency sites — here it is, demystified and yours to remix.
 
+<p align="center">
+  <img src="assets/demo.gif" alt="The four frames cycling: pink, periwinkle, peach, and coral gradient artwork" width="640" />
+  <br />
+  <em>The four frames the scroll wipes through. Swap in a scroll-capture at <code>assets/demo.gif</code> to show the live effect.</em>
+</p>
+
 ![The hero panel: bold "Scroll to Reveal" headline over a soft grey band](docs/media/hero.png)
+
+---
+
+## 📑 Contents
+
+- [What makes it tick](#-what-makes-it-tick)
+- [Gallery](#-gallery)
+- [Get it running](#-get-it-running-the-two-minute-version)
+- [How it's built](#-how-its-built)
+- [Tweakable knobs](#️-tweakable-knobs)
+- [Browser support](#-browser-support)
+- [Live demo](#-live-demo)
+- [Credits & licence](#-credits--licence)
 
 ---
 
@@ -17,9 +45,14 @@ Think of it as a flip-book you steer with your scrollbar. Scroll down and each f
 - **📱 Genuinely responsive.** On phones the image re-pins to the bottom of the screen and the copy stacks above it. No horizontal scrollbars were harmed.
 - **♿ Kind to motion-sensitive folks.** Honours `prefers-reduced-motion` — it quietly shows the final frame instead of scrubbing, and there's a graceful fallback if the animation library ever fails to load.
 
+---
+
+## 🖼️ Gallery
+
 |  |  |  |
 |:--:|:--:|:--:|
 | ![Mid-scroll: the periwinkle frame clipping in over peach](docs/media/frame2.png) | ![The scrub frame, blue wiping over orange](docs/media/frame3.png) | ![The final coral frame fully revealed](docs/media/frame4.png) |
+| *Frame 02 · the clip* | *Frame 03 · the scrub* | *Frame 04 · the palette* |
 
 <p align="center">
   <img src="docs/media/mobile.png" alt="The same reveal on a phone: copy on top, pinned image clipping open at the bottom" width="300" />
@@ -71,7 +104,7 @@ Everything lives in a single, readable `index.html`:
 ```
 pin-img-scroll-clip/
 ├── index.html          # the whole app — markup, styles, and the GSAP setup
-├── assets/             # four self-hosted gradient "frames"
+├── assets/             # four self-hosted gradient "frames" (+ optional demo.gif)
 │   ├── frame-01.png
 │   ├── frame-02.png
 │   ├── frame-03.png
@@ -79,14 +112,28 @@ pin-img-scroll-clip/
 ├── vendor/             # GSAP 3.12.2 + ScrollTrigger, vendored (no CDN dependency)
 │   ├── gsap.min.js
 │   └── ScrollTrigger.min.js
-└── docs/media/         # screenshots for this README
+├── docs/media/         # screenshots for this README
+└── LICENSE
 ```
 
-The core idea in three lines of intent:
+**The reveal, in three lines of intent:**
 
 1. Every frame after the first starts fully clipped away — `clip-path: inset(100% 0% 0%)`.
 2. A GSAP timeline animates them each back to `inset(0% 0% 0%)`, staggered.
 3. `ScrollTrigger` **pins** the image and **scrubs** that timeline to your scroll — so scroll position *is* playback position.
+
+**The data flow, at a glance:**
+
+```
+scroll position
+      │
+      ▼
+ScrollTrigger (pin .right, scrub 1.2)
+      │
+      ├─▶ reveal timeline ──▶ clip-path per .photo   (frames wipe open)
+      │
+      └─▶ per-section tints ─▶ .gallery background   (stage changes colour)
+```
 
 Want to make it your own? Swap the four PNGs in `assets/`, rewrite the copy in `index.html`, and tweak the `--col1`…`--col4` CSS variables to match. That's it.
 
@@ -100,6 +147,15 @@ Want to make it your own? Swap the four PNGs in `assets/`, rewrite the copy in `
 | Add / remove frames | Add a `.photo` block + a matching `.details` section, then a `tints` entry |
 | Speed up / slow down the reveal | The `scrub` value on the pin `ScrollTrigger` (higher = lazier catch-up) |
 | Recolour the mood | The `--col1`…`--col4` variables and the `tints` array |
+
+---
+
+## 🌍 Browser support
+
+Works in every current evergreen browser — Chrome, Edge, Firefox, and Safari — anywhere CSS `clip-path` and GSAP ScrollTrigger are supported.
+
+- **No animation library?** If GSAP fails to load, every frame is revealed statically so the content is never hidden.
+- **Reduced motion?** With `prefers-reduced-motion: reduce`, the scrubbing is skipped and the final frame is shown at rest.
 
 ---
 
