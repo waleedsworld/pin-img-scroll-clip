@@ -14,17 +14,17 @@
 Think of it as a flip-book you steer with your scrollbar. Scroll down and each frame wipes into view; scroll back up and it seals shut again. The whole stage even changes colour to match whichever frame is on deck. It's the kind of scrollytelling flourish you've seen on fancy agency sites — here it is, demystified and yours to remix.
 
 <p align="center">
-  <img src="assets/demo.gif" alt="The four frames cycling: pink, periwinkle, peach, and coral gradient artwork" width="640" />
+  <img src="assets/scroll-reveal-demo.gif" alt="Animated demo: the pinned artwork clipping open frame by frame while the copy scrolls past and the stage tints from pink to periwinkle to peach to coral" width="720" />
   <br />
-  <em>The four frames the scroll wipes through. Swap in a scroll-capture at <code>assets/demo.gif</code> to show the live effect.</em>
+  <em>The effect in motion — captured straight from the running page.</em>
 </p>
 
 ![The hero panel: bold "Scroll to Reveal" headline over a soft grey band](docs/media/hero.png)
 
 <p align="center">
-  <img src="assets/scroll-reveal-demo.gif" alt="Animated demo: the pinned artwork clipping open frame by frame while the copy scrolls past and the stage tints from pink to periwinkle to peach to coral" width="720" />
+  <img src="assets/demo.gif" alt="The four frames cycling: pink, periwinkle, peach, and coral gradient artwork" width="640" />
   <br />
-  <em>The effect in motion — captured straight from the running page.</em>
+  <em>The four gradient frames the scroll wipes through, in sequence.</em>
 </p>
 
 ---
