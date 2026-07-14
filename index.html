@@ -3,6 +3,11 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="color-scheme" content="light dark" />
+		<meta
+			name="description"
+			content="A pinned image that clip-reveals frame by frame as you scroll — built with GSAP ScrollTrigger. Pure HTML, CSS and vanilla JS, self-hosted, no build step."
+		/>
 		<title>Pinned Image · Scroll to Reveal</title>
 
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -14,40 +19,99 @@
 
 		<style>
 			:root {
+				--ink: #1b1b22;
+				--muted: #6b6b78;
+				--paper: #ffffff;
+				--band: #f4f4f7;
+				--skeleton: #e7e7ee;
 				--col1: #f9d2e5;
 				--col2: #cdd1ff;
 				--col3: #ffe4d3;
 				--col4: #ffb399;
+				--radius: 20px;
 			}
 
 			* {
 				box-sizing: border-box;
 			}
 
+			html {
+				scroll-behavior: smooth;
+			}
+
 			body {
 				margin: 0;
-				background: #fff;
+				background: var(--paper);
+				color: var(--ink);
 				font-family: 'Poppins', sans-serif;
+				-webkit-font-smoothing: antialiased;
 			}
 
-			.spacer {
-				width: 100%;
-				height: 50vh;
-				background: #efefef;
+			a {
+				color: inherit;
+			}
+
+			/* --- intro / outro bands --- */
+			.band {
+				min-height: 60vh;
+				background: var(--band);
 				display: flex;
+				flex-direction: column;
 				align-items: center;
 				justify-content: center;
+				text-align: center;
+				padding: 3rem 1.25rem;
 			}
 
-			.spacer > div {
+			.band h1 {
+				font-size: clamp(2.2rem, 6vw, 4.5rem);
 				font-weight: 900;
-				font-size: 64px;
-				color: #cfcfcf;
+				letter-spacing: -0.02em;
+				margin: 0 0 0.6rem;
 			}
 
+			.band p {
+				max-width: 42ch;
+				margin: 0;
+				color: var(--muted);
+				font-family: 'Quicksand', sans-serif;
+				font-size: clamp(1rem, 2.4vw, 1.2rem);
+			}
+
+			.scroll-cue {
+				margin-top: 2rem;
+				font-family: 'Quicksand', sans-serif;
+				font-weight: 600;
+				font-size: 0.85rem;
+				letter-spacing: 0.14em;
+				text-transform: uppercase;
+				color: var(--muted);
+				display: inline-flex;
+				align-items: center;
+				gap: 0.5rem;
+			}
+
+			.scroll-cue::after {
+				content: '↓';
+				display: inline-block;
+				animation: bob 1.6s ease-in-out infinite;
+			}
+
+			@keyframes bob {
+				0%,
+				100% {
+					transform: translateY(0);
+				}
+				50% {
+					transform: translateY(4px);
+				}
+			}
+
+			/* --- the pinned gallery --- */
 			.gallery {
 				display: flex;
 				background: #f8e6ef;
+				transition: background-color 0.4s ease;
 			}
 
 			.left {
@@ -57,27 +121,43 @@
 			.detailsWrapper {
 				margin: auto;
 				width: 80%;
+				max-width: 640px;
 			}
 
 			.details {
-				height: 100vh;
+				min-height: 100vh;
 				display: flex;
 				flex-direction: column;
 				justify-content: center;
+				padding: 4rem 0;
+			}
+
+			.step {
+				font-family: 'Quicksand', sans-serif;
+				font-weight: 700;
+				font-size: 0.8rem;
+				letter-spacing: 0.2em;
+				text-transform: uppercase;
+				color: var(--muted);
+				margin-bottom: 0.75rem;
 			}
 
 			.headline {
-				border-radius: 6px;
-				padding: 0.4em 0.8em;
-				font-size: 2rem;
+				border-radius: 8px;
+				padding: 0.5rem 1rem;
+				font-size: clamp(1.5rem, 3.6vw, 2.4rem);
 				font-weight: 800;
+				line-height: 1.15;
+				display: inline-block;
 				width: fit-content;
 			}
 
-			.text {
-				margin: 0.8em 0 0 0;
-				max-width: 40ch;
+			.copy {
+				margin: 1.1rem 0 0;
+				max-width: 46ch;
+				color: #33333d;
 				font-family: 'Quicksand', sans-serif;
+				font-size: clamp(1rem, 2.2vw, 1.15rem);
 				line-height: 1.6;
 			}
 
@@ -92,6 +172,8 @@
 			.photos {
 				width: 40vw;
 				height: 40vw;
+				max-width: 520px;
+				max-height: 520px;
 				margin: 0 auto;
 				position: relative;
 			}
@@ -99,11 +181,12 @@
 			.photos-box {
 				overflow: hidden;
 				position: absolute;
-				width: 80%;
-				height: 80%;
-				top: 10%;
-				left: 10%;
-				border-radius: 20px;
+				width: 82%;
+				height: 82%;
+				top: 9%;
+				left: 9%;
+				border-radius: var(--radius);
+				box-shadow: 0 30px 60px -25px rgba(30, 20, 40, 0.5);
 			}
 
 			.photo {
@@ -131,95 +214,197 @@
 				background: var(--col4);
 			}
 
-			@media all and (max-width: 640px) {
+			.credit {
+				margin-top: 1.5rem;
+				font-size: 0.8rem;
+				color: var(--muted);
+				font-family: 'Quicksand', sans-serif;
+			}
+
+			@media all and (max-width: 720px) {
 				.gallery {
 					position: relative;
+					flex-direction: column;
 				}
 
 				.left {
 					width: 100%;
 				}
 
+				.detailsWrapper {
+					width: 88%;
+				}
+
 				.right {
 					width: 100%;
 					position: absolute;
-					height: 100%;
+					top: 0;
+					height: 100vh;
 				}
 
 				.photos {
 					position: absolute;
 					width: 100%;
-					height: 50vh;
+					height: 46vh;
+					max-width: none;
+					max-height: none;
 					bottom: 0;
 				}
 
 				.photos-box {
 					width: 90%;
-					height: 90%;
-					top: 0;
+					height: 88%;
+					top: auto;
+					bottom: 5%;
 					left: 5%;
 				}
 
 				.details {
-					justify-content: start;
-					margin-top: 90px;
+					justify-content: flex-start;
+					padding-top: 5.5rem;
+					padding-bottom: 48vh;
+					min-height: 100vh;
 				}
 			}
-		</style>
 
-		<script src="vendor/gsap.min.js"></script>
-		<script src="vendor/ScrollTrigger.min.js"></script>
+			/* Respect users who prefer less motion: show the final frame, no scrub. */
+			@media (prefers-reduced-motion: reduce) {
+				html {
+					scroll-behavior: auto;
+				}
+				.scroll-cue::after {
+					animation: none;
+				}
+			}
+
+			.visually-hidden {
+				position: absolute;
+				width: 1px;
+				height: 1px;
+				padding: 0;
+				margin: -1px;
+				overflow: hidden;
+				clip: rect(0 0 0 0);
+				white-space: nowrap;
+				border: 0;
+			}
+		</style>
 	</head>
 	<body>
-		<div class="spacer">
-			<div>Scroll</div>
-		</div>
+		<header class="band" role="banner">
+			<h1>Scroll to Reveal</h1>
+			<p>
+				One image, pinned in place, clipping open frame by frame as the story
+				scrolls past it. Built with GSAP ScrollTrigger — no build step, no
+				framework, just honest HTML and CSS.
+			</p>
+			<span class="scroll-cue">Scroll on</span>
+		</header>
 
-		<div class="gallery">
+		<main class="gallery" aria-label="Scroll-linked image reveal">
 			<div class="left">
 				<div class="detailsWrapper">
-					<div class="details d1">
-						<div class="headline col1">Frame one</div>
-						<p class="text">The image pins to the centre of the screen.</p>
-					</div>
+					<section class="details d1">
+						<p class="step">Frame 01</p>
+						<h2 class="headline col1">The pin</h2>
+						<p class="copy">
+							As you enter the gallery, the artwork locks to the centre of
+							the screen. It stays put while the words on the left keep
+							travelling — that steadiness is what makes the reveal feel
+							deliberate.
+						</p>
+					</section>
 
-					<div class="details d2">
-						<div class="headline col2">Frame two</div>
-						<p class="text">Each frame clips into view as you scroll.</p>
-					</div>
+					<section class="details d2">
+						<p class="step">Frame 02</p>
+						<h2 class="headline col2">The clip</h2>
+						<p class="copy">
+							Each new frame wipes in with a CSS <code>clip-path</code> inset,
+							tied directly to your scroll position. Scroll down and it opens;
+							scroll back and it seals shut. The motion is yours to steer.
+						</p>
+					</section>
 
-					<div class="details d3">
-						<div class="headline col3">Frame three</div>
-						<p class="text">Scrub keeps the animation glued to the scrollbar.</p>
-					</div>
+					<section class="details d3">
+						<p class="step">Frame 03</p>
+						<h2 class="headline col3">The scrub</h2>
+						<p class="copy">
+							ScrollTrigger's <code>scrub</code> glues the timeline to the
+							scrollbar, so the animation never runs ahead of you. Fast flick
+							or slow crawl, the frames keep exact pace.
+						</p>
+					</section>
 
-					<div class="details d4">
-						<div class="headline col4">Frame four</div>
-						<p class="text">The background tints toward each frame's colour.</p>
-					</div>
+					<section class="details d4">
+						<p class="step">Frame 04</p>
+						<h2 class="headline col4">The palette</h2>
+						<p class="copy">
+							The whole stage tints toward each frame's colour as it arrives,
+							so the background breathes along with the images. Four frames,
+							one continuous, scroll-driven gradient.
+						</p>
+					</section>
 				</div>
 			</div>
 
 			<div class="right">
 				<div class="photos">
 					<div class="photos-box">
-						<div class="photo col1"><img src="assets/frame-01.png" /></div>
-						<div class="photo col2"><img src="assets/frame-02.png" /></div>
-						<div class="photo col3"><img src="assets/frame-03.png" /></div>
-						<div class="photo col4"><img src="assets/frame-04.png" /></div>
+						<div class="photo col1">
+							<img src="assets/frame-01.png" alt="Soft pink gradient artwork, frame one" />
+						</div>
+						<div class="photo col2">
+							<img src="assets/frame-02.png" alt="Periwinkle blue gradient artwork, frame two" />
+						</div>
+						<div class="photo col3">
+							<img src="assets/frame-03.png" alt="Warm peach gradient artwork, frame three" />
+						</div>
+						<div class="photo col4">
+							<img src="assets/frame-04.png" alt="Coral orange gradient artwork, frame four" />
+						</div>
 					</div>
 				</div>
 			</div>
-		</div>
+		</main>
 
-		<div class="spacer">
-			<div>End</div>
-		</div>
+		<footer class="band" role="contentinfo">
+			<h1>That's the trick</h1>
+			<p>
+				A pinned element, a scroll-scrubbed clip-path, and a colour that shifts
+				per frame. Copy it, remix it, ship it.
+			</p>
+			<p class="credit">
+				Technique inspired by classic ScrollTrigger galleries · artwork and code
+				self-hosted.
+			</p>
+		</footer>
 
+		<script src="vendor/gsap.min.js"></script>
+		<script src="vendor/ScrollTrigger.min.js"></script>
 		<script>
-			window.onload = () => {
+			window.addEventListener('load', () => {
+				const prefersReduced = window.matchMedia(
+					'(prefers-reduced-motion: reduce)'
+				).matches;
+
+				if (!window.gsap || !window.ScrollTrigger) {
+					// Graceful fallback: reveal every frame if the library fails to load.
+					document
+						.querySelectorAll('.photo')
+						.forEach((p) => (p.style.clipPath = 'inset(0% 0% 0%)'));
+					return;
+				}
+
 				gsap.registerPlugin(ScrollTrigger);
 
+				if (prefersReduced) {
+					// No scrubbed motion: just present the last frame, statically.
+					gsap.set('.photo', { clipPath: 'inset(0% 0% 0%)' });
+					gsap.set('.gallery', { backgroundColor: '#ffb399aa' });
+					return;
+				}
+
+				// Every frame after the first starts fully clipped (hidden from the top).
 				gsap.set('.photo:not(:first-child)', {
 					clipPath: 'inset(100% 0% 0%)',
 				});
@@ -231,6 +416,7 @@
 					ease: 'none',
 				});
 
+				// Gentle idle float on the imagery.
 				gsap.to('.photo img', {
 					y: -6,
 					duration: 2,
@@ -248,6 +434,7 @@
 					scrub: 1.2,
 				});
 
+				// Tint the stage toward each frame's colour as it scrolls in.
 				const tints = [
 					['.d1', '#f9d2e5aa'],
 					['.d2', '#cdd1ffaa'],
@@ -261,7 +448,7 @@
 						scrollTrigger: { trigger, scrub: true },
 					});
 				});
-			};
+			});
 		</script>
 	</body>
 </html>
